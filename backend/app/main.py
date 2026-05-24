@@ -1,9 +1,10 @@
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.valkey import init_valkey
-from app.routes import cart, checkout, auth
+from app.routes import cart, checkout, auth, simulation
 
 # Configure logging
 logging.basicConfig(
@@ -33,6 +34,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Enable CORS for frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Exception handler for general exceptions to format JSON errors properly
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -46,6 +56,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(auth.router)
 app.include_router(cart.router)
 app.include_router(checkout.router)
+app.include_router(simulation.router)
 
 @app.get("/")
 def read_root():
