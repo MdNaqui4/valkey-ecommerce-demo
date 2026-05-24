@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from app.valkey import init_valkey
-from app.routes import cart, checkout
+from app.routes import cart, checkout, auth
 
 # Configure logging
 logging.basicConfig(
@@ -21,7 +21,6 @@ async def lifespan(app: FastAPI):
         logger.info("Valkey connection established and mock data seeded.")
     except Exception as e:
         logger.critical("Valkey initialization failed: %s", str(e))
-        # We raise the exception so that the application fails to start as requested
         raise e
     yield
     # Shutdown actions
@@ -44,6 +43,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 # Include API Routers
+app.include_router(auth.router)
 app.include_router(cart.router)
 app.include_router(checkout.router)
 
